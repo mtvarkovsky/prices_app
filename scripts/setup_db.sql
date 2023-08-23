@@ -1,0 +1,8 @@
+CREATE DATABASE IF NOT EXISTS prices;
+
+CREATE USER 'prices'@'localhost' IDENTIFIED BY '1q2w3e';
+GRANT ALL PRIVILEGES ON *.* TO 'prices'@'localhost' WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
+
+SET GLOBAL local_infile=TRUE;
