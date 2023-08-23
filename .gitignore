@@ -9,7 +9,18 @@
 *.dylib
 
 # Build binaries
-build/
+build/*
+!build/.gitkeep
+
+# Test data
+test/*
+!test/.gitkeep
+test/data
+!test/data/.gitkeep
+test/processed
+!test/processed/.gitkeep
+test/errors
+!test/errors/.gitkeep
 
 # Test binary, built with `go test -c`
 *.test
