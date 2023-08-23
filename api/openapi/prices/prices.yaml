@@ -1,0 +1,57 @@
+openapi: 3.0.3
+info:
+  title: Prices
+  description: |
+    API for Prices App.
+  version: 0.0.1
+servers:
+  - url: "http://localhost:8080/api/v0/prices"
+
+tags:
+  - name: Promotions
+
+paths:
+  /promotions/{promotion_id}:
+    get:
+      tags:
+        - Promotions
+      description: Return promotion by its id.
+      operationId: GetPromotion
+      parameters:
+        - $ref: '#/components/parameters/promotion_id'
+      responses:
+        '200':
+          description: Promotion found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Promotion'
+        '404':
+          description: Promotion not found.
+
+components:
+  schemas:
+    Promotion:
+      description: Promotion data.
+      type: object
+      properties:
+        id:
+          description: Id of the promotion.
+          type: string
+        price:
+          description: Price of the promotion.
+          type: number
+        expiration_date:
+          description: Expiration date of the promotion.
+          type: string
+          format: date-time
+
+  parameters:
+    promotion_id:
+      name: promotion_id
+      in: path
+      description: Id of the promotion.
+      required: true
+      schema:
+        type: string
+

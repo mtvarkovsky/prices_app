@@ -1,0 +1,9 @@
+package: prices
+generate:
+  models: true
+  gin-server: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+compatibility:
+  always-prefix-enum-values: true

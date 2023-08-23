@@ -13,6 +13,10 @@ NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 MIGRATION_NAME=new_migration_${NOW}
 
+OPENAPI_DIR=./api/openapi
+PRICES_API_CONFIG=${OPENAPI_DIR}/prices/spec.yaml
+PRICES_API_SPEC=${OPENAPI_DIR}/prices/prices.yaml
+PRICES_API_OUT_SRC=pkg/api/prices.gen.go
 
 .PHONY: build-files
 build-files: ## builds the executable and places it to ./build/
@@ -32,7 +36,7 @@ run-files: ## runs the built executable
 
 .PHONY: migrate
 migrate:
-	@go get github.com/golang-migrate/migrate/v4
+	@go install github.com/golang-migrate/migrate/v4
 
 .PHONY: add-migration
 add-migration: migrate ## add new .sql migration file
@@ -41,4 +45,12 @@ add-migration: migrate ## add new .sql migration file
 .PHONY: docker-build-files
 docker-build-files: ## build docker image
 	DOCKER_BUILDKIT=1 docker build --ssh default . -f ./deployments/Dockerfile -t $(FILES):latest
+
+.PHONY: codegen
+codegen:
+	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen
+
+.PHONY: prices-api
+prices-api: codegen
+	@oapi-codegen --config $(PRICES_API_CONFIG) -o $(PRICES_API_OUT_SRC) $(PRICES_API_SPEC)
 
