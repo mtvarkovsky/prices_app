@@ -152,14 +152,6 @@ func (p *processor) readFileByLines(file File) {
 			}
 		}
 	}
-	//go func() {
-	//	p.logger.Sugar().Infof("try remove processed file=%s", file)
-	//	if err := os.Remove(file.Path); err != nil {
-	//		p.logger.Sugar().Errorf("can't remove processed file=%s: (%s)", file, err.Error())
-	//	}
-	//	p.logger.Sugar().Infof("removed processed file=%s", file)
-	//}()
-	//p.wg.Done()
 }
 
 func (p *processor) toPrice(path string, line []string) *models.Price {
@@ -209,7 +201,6 @@ func (p *processor) ProcessFiles() {
 		p.wgWrite.Add(1)
 		go p.saveFiles()
 	}
-	//p.logger.Sugar().Info("stop reading files")
 }
 
 func (p *processor) saveFiles() {
@@ -222,12 +213,10 @@ func (p *processor) saveFiles() {
 	}
 	for file := range data {
 		p.logger.Sugar().Infof("save file=%s to storage", file)
-		//p.wgInternal.Add(1)
 		err := p.repo.ImportFile(p.ctx, file.Path)
 		if err != nil {
 			p.logger.Sugar().Errorf("worker unable to proces file=%s: (%s)", file, err.Error())
 		}
-		//p.wgInternal.Done()
 	}
 	p.logger.Info("stop save files worker")
 }

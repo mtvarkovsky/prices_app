@@ -1,10 +1,7 @@
 package files
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"os"
 )
 
 type (
@@ -121,59 +118,4 @@ func (c *fileCacheInMem) Get(path string) (File, bool, error) {
 
 func (c *fileCacheInMem) Len() int {
 	return len(c.data)
-}
-
-func MoveFile(oldPath string, newPath string) error {
-	oldFile, err := os.Open(oldPath)
-	if err != nil {
-		return fmt.Errorf("can't open file=%s: %w", oldPath, err)
-	}
-	oldFileInfo, err := oldFile.Stat()
-	if err != nil {
-		return fmt.Errorf("can't get file info for file=%s: %w", oldPath, err)
-	}
-
-	flag := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	perm := oldFileInfo.Mode() & os.ModePerm
-	newFile, err := os.OpenFile(newPath, flag, perm)
-	if err != nil {
-		return fmt.Errorf("can't create file=%s: %w", newPath, err)
-	}
-	defer newFile.Close()
-
-	_, err = io.Copy(oldFile, newFile)
-	oldFile.Close()
-	if err != nil {
-		return fmt.Errorf("can't copy file data from file=%s to file=%s: %w", oldPath, newPath, err)
-	}
-
-	err = os.Remove(oldPath)
-	if err != nil {
-		return fmt.Errorf("can't remove file=%s: %w", oldPath, err)
-	}
-
-	return nil
-}
-
-func CountLines(file File) (int, error) {
-	f, err := os.Open(file.Path)
-	defer f.Close()
-	if err != nil {
-		return 0, fmt.Errorf("can't open file=%s: %w", file, err)
-	}
-	buf := make([]byte, 32*1024)
-	count := 0
-	lineSep := []byte{'\n'}
-
-	for {
-		c, err := f.Read(buf)
-		count += bytes.Count(buf[:c], lineSep)
-
-		if err != nil {
-			if err == io.EOF {
-				return count, nil
-			}
-			return 0, fmt.Errorf("can't read file=%s: %w", file, err)
-		}
-	}
 }

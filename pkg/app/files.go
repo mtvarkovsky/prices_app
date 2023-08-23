@@ -46,8 +46,6 @@ func RunFiles(ctx context.Context, config *config.FileProcessor) error {
 	stopProcessor := make(chan bool)
 
 	filesQueue := files.NewFileQueueInMem(config.FilesQueueSize)
-	//filesProcessedQueue := files.NewFileQueueInMem(config.FilesProcessedQueueSize)
-	//filesErrorQueue := files.NewFileQueueInMem(config.FilesErrorQueueSize)
 	filesSplitQueue := files.NewFileQueueInMem(config.FilesSplitQueueSize)
 
 	filesCache := files.NewFileCacheInMem()
