@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" // DB driver
 	"github.com/nullism/bqb"
 	"prices/pkg/config"
+	"prices/pkg/errors"
 	"prices/pkg/models"
 	"time"
 )
@@ -105,9 +106,12 @@ func (r *mysqlPrices) Get(ctx context.Context, id string) (*models.Price, error)
 	var price models.Price
 
 	row := r.db.QueryRowContext(ctx, query, args...)
-	err = row.Scan(&price)
+	err = row.Scan(&price.ID, &price.Price, &price.ExpirationDate)
 	if err != nil {
-		return nil, fmt.Errorf("can't execute create get price query: %w", err)
+		if errors.ErrorIs(err, sql.ErrNoRows) {
+			return nil, errors.PriceNotFound
+		}
+		return nil, fmt.Errorf("can't execute get price query: %w", err)
 	}
 
 	return &price, nil

@@ -26,12 +26,12 @@ var startCmd = &cobra.Command{
 			}
 		}()
 
-		cfg := &config.FileProcessor{}
-		cfg, err := cfg.LoadConfig("files_app.yaml")
+		cfg := &config.APIServer{}
+		cfg, err := cfg.LoadConfig("prices_app.yaml")
 		if err != nil {
 			return err
 		}
 
-		return app.RunFiles(ctx, cfg)
+		return app.RunPrices(ctx, cfg)
 	},
 }

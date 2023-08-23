@@ -1,4 +1,4 @@
-package: prices
+package: api
 generate:
   models: true
   gin-server: true

@@ -39,12 +39,18 @@ components:
           description: Id of the promotion.
           type: string
         price:
+          x-go-type: float64
           description: Price of the promotion.
+          format: double
           type: number
         expiration_date:
           description: Expiration date of the promotion.
           type: string
           format: date-time
+      required:
+        - id
+        - price
+        - expiration_date
 
   parameters:
     promotion_id:

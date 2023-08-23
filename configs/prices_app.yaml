@@ -1,0 +1,5 @@
+PORT: 8080
+STORAGE:
+  TYPE: mysql
+  MAX_CONNECTIONS: 2000
+  DSN: prices:1q2w3e@tcp(mysqldb:3306)/prices?parseTime=true

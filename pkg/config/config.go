@@ -41,6 +41,7 @@ type (
 	}
 
 	APIServer struct {
+		Port    int     `mapstructure:"PORT"`
 		Storage Storage `mapstructure:"STORAGE"`
 	}
 
@@ -66,6 +67,26 @@ func (cfg *FileProcessor) LoadConfig(name string) (*FileProcessor, error) {
 	err = viper.Unmarshal(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("can't unmarshall config for FileProcessor from=%s: %w", name, err)
+	}
+
+	return cfg, nil
+}
+
+func (cfg *APIServer) LoadConfig(name string) (*APIServer, error) {
+	viper.AddConfigPath("./configs")
+	viper.SetConfigName(name)
+	viper.SetConfigType("yaml")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		return nil, fmt.Errorf("can't read config for APIServer from=%s: %w", name, err)
+	}
+
+	err = viper.Unmarshal(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("can't unmarshall config for APIServer from=%s: %w", name, err)
 	}
 
 	return cfg, nil

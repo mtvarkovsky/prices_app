@@ -11,19 +11,19 @@ import (
 	"sync"
 )
 
-func Run(ctx context.Context, config *config.FileProcessor) error {
+func RunFiles(ctx context.Context, config *config.FileProcessor) error {
 	encoderCfg := zap.NewProductionEncoderConfig()
 	encoderCfg.TimeKey = "timestamp"
-	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderCfg.EncodeTime = zapcore.RFC3339TimeEncoder
 
 	zapCfg := zap.NewProductionConfig()
 	zapCfg.EncoderConfig = encoderCfg
 
 	logger := zap.Must(zapCfg.Build())
 
-	log := logger.Named("filesApp")
+	log := logger.Named("FilesApp")
 
-	log.Sugar().Infof("start filesApp")
+	log.Sugar().Infof("start FilesApp")
 
 	log.Sugar().Info("run migrations")
 	err := migrations.MigrateDB(config.Storage.DSN)
@@ -62,7 +62,7 @@ func Run(ctx context.Context, config *config.FileProcessor) error {
 	go processor.Process()
 
 	<-ctx.Done()
-	log.Sugar().Infof("stopping filesApp")
+	log.Sugar().Infof("stopping FilesApp")
 
 	_ = filesQueue.Close()
 
@@ -71,7 +71,7 @@ func Run(ctx context.Context, config *config.FileProcessor) error {
 	stopProcessor <- true
 
 	wg.Wait()
-	log.Sugar().Infof("filesApp stopped. Bye!")
+	log.Sugar().Infof("FilesApp stopped. Bye!")
 
 	return nil
 }
