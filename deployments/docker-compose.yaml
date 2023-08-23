@@ -1,0 +1,39 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:8.0
+    restart: always
+    container_name: mysqldb
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: prices
+      MYSQL_USER: prices
+      MYSQL_PASSWORD: 1q2w3e
+    volumes:
+      - ../scripts/setup_db.sql:/docker-entrypoint-initdb.d/setup_db.sql
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 30s
+      retries: 10
+    command:
+      - --local-infile=1
+
+  fileParser:
+    image: files:latest
+    restart: always
+    container_name: fileParser
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ../test/data:/app/data
+
+volumes:
+  db_data:
+networks:
+  prices:
+    driver: bridge
