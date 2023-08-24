@@ -111,7 +111,7 @@ $ make build-test-data
 
 Now we have some test data we can feed it to the application.
 
-Copy generated file to the directory specified in `FILES_DIRECTORY` field of [files_app.yaml](./configs/files_app.yaml) (by default it is `./test`).
+Copy generated file to the directory specified in `FILES_DIRECTORY` field of [files_app.yaml](./configs/files_app.yaml) (by default it is `./test/data`).
 
 If the application is running and healthy you should see something like this in the logs:
 ```
