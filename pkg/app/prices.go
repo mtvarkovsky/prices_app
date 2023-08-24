@@ -13,35 +13,24 @@ import (
 
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func RunPrices(ctx context.Context, config *config.APIServer) error {
-	encoderCfg := zap.NewProductionEncoderConfig()
-	encoderCfg.TimeKey = "timestamp"
-	encoderCfg.EncodeTime = zapcore.RFC3339TimeEncoder
+	logger := getLogger("PricesApp")
 
-	zapCfg := zap.NewProductionConfig()
-	zapCfg.EncoderConfig = encoderCfg
+	logger.Sugar().Infof("start PricesApp")
 
-	logger := zap.Must(zapCfg.Build())
-
-	log := logger.Named("PricesApp")
-
-	log.Sugar().Infof("start PricesApp")
-
-	log.Sugar().Info("run migrations")
+	logger.Sugar().Info("run migrations")
 	err := migrations.MigrateDB(config.Storage.DSN)
 	if err != nil {
-		log.Sugar().Errorf("unable to run migrations: (%s)", err.Error())
+		logger.Sugar().Errorf("unable to run migrations: (%s)", err.Error())
 		return err
 	}
 
-	log.Sugar().Infof("init prices repo for storage=%s", config.Storage.Type)
+	logger.Sugar().Infof("init prices repo for storage=%s", config.Storage.Type)
 	pricesRepo, err := repository.NewPrices(config.Storage)
 	if err != nil {
-		log.Sugar().Errorf("unable to init prices repo for storage=%s: (%s)", config.Storage.Type, err.Error())
+		logger.Sugar().Errorf("unable to init prices repo for storage=%s: (%s)", config.Storage.Type, err.Error())
 		return err
 	}
 
@@ -57,13 +46,13 @@ func RunPrices(ctx context.Context, config *config.APIServer) error {
 		Handler: r,
 	}
 
-	restAPI := api.NewAPI(config, log, pricesRepo)
+	restAPI := api.NewAPI(config, logger, pricesRepo)
 	restAPI.RegisterHandlers(r)
 
 	go func() {
-		log.Sugar().Infof("start listening on port=%d", config.Port)
+		logger.Sugar().Infof("start listening on port=%d", config.Port)
 		if err = httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Sugar().Fatalf("can't start api server at port=%d: (%s)", config.Port, err.Error())
+			logger.Sugar().Fatalf("can't start api server at port=%d: (%s)", config.Port, err.Error())
 		}
 	}()
 
@@ -73,10 +62,10 @@ func RunPrices(ctx context.Context, config *config.APIServer) error {
 	defer cancel()
 
 	if err := httpSrv.Shutdown(ctx); err != nil {
-		log.Sugar().Fatalf("server shutdown failed: %v\n", err)
+		logger.Sugar().Fatalf("server shutdown failed: %v\n", err)
 	}
 
-	log.Sugar().Infof("PricesApp stopped. Bye!")
+	logger.Sugar().Infof("PricesApp stopped. Bye!")
 
 	return nil
 }

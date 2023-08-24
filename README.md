@@ -194,7 +194,7 @@ The initial task description mentioned the possibility of a high load of concurr
 
 One way to solve this issue is to use multiple instances of `PricesApp` and set up a load balancer to distribute the incoming requests.
 
-Current Docker-based configurations use Nginx to show an example of this approach.
+Current Docker-based configurations use Nginx to show an example of this approach (manual load balancing).
 
 You can test it by building and running the Dockerized version of the application:
 ```bash
