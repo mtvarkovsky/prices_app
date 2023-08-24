@@ -122,7 +122,7 @@ fileParser  | {"level":"info","timestamp":"2023-08-24T10:01:41Z","logger":"FileP
 
 After the file is written to the DB storage we can try to get it through the API:
 ```bash
-curl http://localhost:8080/api/v0/prices/promotions/98015680-bf98-4ec5-85a6-2e5f7eee1495 -v
+$ curl http://localhost:8080/api/v0/prices/promotions/98015680-bf98-4ec5-85a6-2e5f7eee1495 -v
 ```
 
 You can pick any ID from the generated test data file.
@@ -187,7 +187,7 @@ The OpenAPI schema definition is located in [prices.yaml](./api/openapi/prices/p
 
 You can regenerate the `.go` code stubs with this command:
 ```bash
-make prices-api
+$ make prices-api
 ```
 
 The initial task description mentioned the possibility of a high load of concurrent requests to this API.
@@ -203,7 +203,7 @@ $ make docker-build && make docker-run
 
 Then if you make many requests to the load balancer:
 ```bash
-curl http://localhost:80/api/v0/prices/promotions/22c3be74-4264-11ee-9c24-a45e60d0762b -v
+$ curl http://localhost:80/api/v0/prices/promotions/22c3be74-4264-11ee-9c24-a45e60d0762b -v
 ```
 
 in the application logs, you'll see that requests are distributed between multiple instances of the `PricesApp`.
