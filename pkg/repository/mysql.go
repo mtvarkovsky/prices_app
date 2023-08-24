@@ -41,17 +41,17 @@ func newMysqlPrices(config config.Storage) (*mysqlPrices, error) {
 	}, nil
 }
 
-func (r *mysqlPrices) Create(ctx context.Context, prices []*models.Price) error {
+func (r *mysqlPrices) CreateMany(ctx context.Context, prices []*models.Price) error {
 	values := bqb.Q()
 	for _, price := range prices {
 		values.Comma("(?,?,?)", price.ID, price.Price, price.ExpirationDate)
 	}
 	q := bqb.New(
 		`
-			INSERT INTO prices (id, price, expiration_date) VALUES ?
--- 			ON DUPLICATE KEY UPDATE 
--- 				price = IF(expiration_date < VALUES(expiration_date), VALUES(price), price),
--- 				expiration_date = IF(expiration_date < VALUES(expiration_date), VALUES(expiration_date), expiration_date)
+			INSERT INTO prices (id, price, expiration_date) VALUES 
+			?
+			ON DUPLICATE KEY UPDATE 
+				id = id
 		`,
 		values,
 	)

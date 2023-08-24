@@ -100,7 +100,7 @@ func (p *processor) saveLines() {
 	defer p.wgWrite.Done()
 	p.logger.Sugar().Info("start processing worker")
 	for prices := range p.data {
-		err := p.repo.Create(p.ctx, prices)
+		err := p.repo.CreateMany(p.ctx, prices)
 		if err != nil {
 			p.logger.Sugar().Errorf("worker unable to proces data item: (%s)", err.Error())
 		}

@@ -210,8 +210,8 @@ func TestProcessor_SaveLines(t *testing.T) {
 	prcssr.wgWrite.Add(1)
 	go prcssr.saveLines()
 
-	repo.EXPECT().Create(prcssr.ctx, prices[0]).Return(nil)
-	repo.EXPECT().Create(prcssr.ctx, prices[1]).Return(nil)
+	repo.EXPECT().CreateMany(prcssr.ctx, prices[0]).Return(nil)
+	repo.EXPECT().CreateMany(prcssr.ctx, prices[1]).Return(nil)
 
 	data <- prices[0]
 	data <- prices[1]
@@ -290,8 +290,8 @@ func TestProcessor_ProcessLines(t *testing.T) {
 
 	go prcssr.Process()
 
-	repo.EXPECT().Create(prcssr.ctx, prices[0]).Return(nil)
-	repo.EXPECT().Create(prcssr.ctx, prices[1]).Return(nil)
+	repo.EXPECT().CreateMany(prcssr.ctx, prices[0]).Return(nil)
+	repo.EXPECT().CreateMany(prcssr.ctx, prices[1]).Return(nil)
 
 	err = files.Put(file)
 	assert.NoError(t, err)

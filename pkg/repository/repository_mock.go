@@ -35,18 +35,18 @@ func (m *MockPrices) EXPECT() *MockPricesMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockPrices) Create(ctx context.Context, prices []*models.Price) error {
+// CreateMany mocks base method.
+func (m *MockPrices) CreateMany(ctx context.Context, prices []*models.Price) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, prices)
+	ret := m.ctrl.Call(m, "CreateMany", ctx, prices)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Create indicates an expected call of Create.
-func (mr *MockPricesMockRecorder) Create(ctx, prices interface{}) *gomock.Call {
+// CreateMany indicates an expected call of CreateMany.
+func (mr *MockPricesMockRecorder) CreateMany(ctx, prices interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPrices)(nil).Create), ctx, prices)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMany", reflect.TypeOf((*MockPrices)(nil).CreateMany), ctx, prices)
 }
 
 // Get mocks base method.

@@ -11,7 +11,7 @@ import (
 
 type (
 	Prices interface {
-		Create(ctx context.Context, prices []*models.Price) error
+		CreateMany(ctx context.Context, prices []*models.Price) error
 		Get(ctx context.Context, id string) (*models.Price, error)
 		ImportFile(ctx context.Context, filePath string) error
 	}
