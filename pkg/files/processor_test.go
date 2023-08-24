@@ -4,10 +4,6 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"github.com/golang/mock/gomock"
-	"github.com/shopspring/decimal"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 	"os"
 	"prices/pkg/config"
 	"prices/pkg/models"
@@ -16,6 +12,11 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/shopspring/decimal"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func newTestLineProcessor(t *testing.T) (*processor, chan bool) {
@@ -333,6 +334,8 @@ func TestProcessor_ProcessFiles(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = files.Close()
+	assert.NoError(t, err)
+
 	stop <- true
 	wg.Wait()
 }

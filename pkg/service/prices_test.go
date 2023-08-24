@@ -2,14 +2,15 @@ package service
 
 import (
 	"context"
-	"github.com/golang/mock/gomock"
-	"github.com/shopspring/decimal"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 	"prices/pkg/models"
 	"prices/pkg/repository"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/shopspring/decimal"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func newTestPrices(t *testing.T) *prices {

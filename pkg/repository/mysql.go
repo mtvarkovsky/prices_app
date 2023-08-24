@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql" // DB driver
-	"github.com/nullism/bqb"
 	"prices/pkg/config"
 	"prices/pkg/errors"
 	"prices/pkg/models"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql" // DB driver
+	"github.com/nullism/bqb"
 )
 
 type (
@@ -109,7 +110,7 @@ func (r *mysqlPrices) Get(ctx context.Context, id string) (*models.Price, error)
 	err = row.Scan(&price.ID, &price.Price, &price.ExpirationDate)
 	if err != nil {
 		if errors.ErrorIs(err, sql.ErrNoRows) {
-			return nil, errors.PriceNotFound
+			return nil, errors.ErrPriceNotFound
 		}
 		return nil, fmt.Errorf("can't execute get price query: %w", err)
 	}

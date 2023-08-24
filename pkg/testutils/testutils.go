@@ -3,11 +3,12 @@ package testutils
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/google/uuid"
 	"log"
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func GenerateTestData(lines int, targetDir string) {

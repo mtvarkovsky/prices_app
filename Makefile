@@ -35,7 +35,7 @@ build-test-data: ## builds the testdata executable and places it to ./build/
 
 .PHONY: clean
 clean: ## clean up, removes the ./build directory
-	@rm -rf ${BUILD_DIR}
+	rm -rf ${BUILD_DIR}
 
 .PHONY: run-files
 run-files: ## runs the built executable
@@ -46,12 +46,12 @@ run-prices: ## runs the built executable
 	./$(BUILD_OUT_PRICES) start
 
 .PHONY: migrate
-migrate:
-	@go install github.com/golang-migrate/migrate/v4
+migrate: ## install migrations dependency
+	go install github.com/golang-migrate/migrate/v4
 
 .PHONY: add-migration
 add-migration: migrate ## add new .sql migration file
-	@migrate create -ext sql -dir pkg/migrations/sql -seq $(MIGRATION_NAME)
+	migrate create -ext sql -dir pkg/migrations/sql -seq $(MIGRATION_NAME)
 
 .PHONY: docker-build-files
 docker-build-files: ## build files docker image
@@ -62,10 +62,32 @@ docker-build-prices: ## build prices docker image
 	DOCKER_BUILDKIT=1 docker build --ssh default . -f ./deployments/Dockerfile_Prices -t $(PRICES):latest
 
 .PHONY: codegen
-codegen:
+codegen: ## install oapicodegen dependency
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen
 
+.PHONY: gomock
+gomock: ## install mockgen dependency
+	go install github.com/golang/mock/mockgen
+
+.PHONY: mocks
+mocks: gomock ## generate gomock files
+	go generate ./...
+
+.PHONY: clean-mocks
+clean-mocks:
+	find . -name '*_mock.go' -delete
+
 .PHONY: prices-api
-prices-api: codegen
-	@oapi-codegen --config $(PRICES_API_CONFIG) -o $(PRICES_API_OUT_SRC) $(PRICES_API_SPEC)
+prices-api: codegen ## build code stubs from open api definition
+	oapi-codegen --config $(PRICES_API_CONFIG) -o $(PRICES_API_OUT_SRC) $(PRICES_API_SPEC)
+
+.PHONY: install-lint
+install-lint: ## install golangci dependency
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+
+.PHONY: lint
+lint: install-lint ## run golang linter against the source code
+	golangci-lint run ./... --fix
+
 

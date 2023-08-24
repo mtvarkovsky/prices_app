@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"prices/pkg/errors"
 	"prices/pkg/models"
 	"prices/pkg/repository"
+
+	"go.uber.org/zap"
 )
 
 type (
@@ -33,9 +34,9 @@ func NewPrices(logger *zap.Logger, repo repository.Prices) Prices {
 func (p *prices) Get(ctx context.Context, id string) (*models.Price, error) {
 	price, err := p.repo.Get(ctx, id)
 	if err != nil {
-		if !errors.ErrorIs(err, errors.PriceNotFound) {
+		if !errors.ErrorIs(err, errors.ErrPriceNotFound) {
 			p.logger.Sugar().Errorf("can't get price, id=%s: (%s)", id, err.Error())
-			return nil, errors.InternalError
+			return nil, errors.ErrInternal
 		}
 		return nil, err
 	}

@@ -2,12 +2,13 @@ package files
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"prices/pkg/config"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -50,11 +51,11 @@ func (s *scanner) Scan() {
 		s.logger.Sugar().Errorf("can't open directory=%s: (%s)", s.config.FilesDir, err.Error())
 	}
 	s.wg.Add(1)
-	ticker := time.Tick(s.config.FileScanner.CheckEveryDuration)
+	ticker := time.NewTicker(s.config.FileScanner.CheckEveryDuration)
 	s.scanDir()
 	for {
 		select {
-		case <-ticker:
+		case <-ticker.C:
 			s.logger.Sugar().Infof("rescan directory=%s", s.config.FilesDir)
 			s.scanDir()
 		case <-s.stop:
@@ -84,11 +85,7 @@ func (s *scanner) valid(entry os.DirEntry) bool {
 	}
 
 	extension := filepath.Ext(s.getPath(entry))
-	if extension != CSV {
-		return false
-	}
-
-	return true
+	return extension == CSV
 }
 
 func (s *scanner) getPath(entry os.DirEntry) string {

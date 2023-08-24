@@ -3,11 +3,12 @@ package files
 import (
 	"encoding/csv"
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	"os"
 	"prices/pkg/config"
 	"sync"
+
+	"go.uber.org/zap"
 )
 
 type (

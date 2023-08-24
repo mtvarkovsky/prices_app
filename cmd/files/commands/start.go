@@ -2,12 +2,13 @@ package commands
 
 import (
 	"context"
-	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"prices/pkg/app"
 	"prices/pkg/config"
 	"syscall"
+
+	"github.com/spf13/cobra"
 )
 
 var startCmd = &cobra.Command{

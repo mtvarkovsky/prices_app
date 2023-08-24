@@ -3,12 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/shopspring/decimal"
-	"github.com/stretchr/testify/assert"
 	"prices/pkg/models"
 	"testing"
 	"time"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/shopspring/decimal"
+	"github.com/stretchr/testify/assert"
 )
 
 func newTestMysqlPrices(t *testing.T) (*mysqlPrices, sqlmock.Sqlmock) {

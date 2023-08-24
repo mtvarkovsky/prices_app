@@ -1,14 +1,15 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"net/http"
 	"prices/pkg/config"
 	"prices/pkg/errors"
 	"prices/pkg/models"
 	"prices/pkg/repository"
 	"prices/pkg/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 const (
@@ -50,10 +51,10 @@ func (api *API) RegisterHandlers(e *gin.Engine) {
 }
 
 func (api *API) mapErrorToStatus(err error) int {
-	if errors.ErrorIs(err, errors.PriceNotFound) {
+	if errors.ErrorIs(err, errors.ErrPriceNotFound) {
 		return http.StatusNotFound
 	}
-	if errors.ErrorIs(err, errors.InternalError) {
+	if errors.ErrorIs(err, errors.ErrInternal) {
 		return http.StatusInternalServerError
 	}
 	return http.StatusInternalServerError
@@ -75,5 +76,5 @@ func (api *API) GetPromotion(c *gin.Context, id PromotionId) {
 		c.AbortWithStatus(api.mapErrorToStatus(err))
 		return
 	}
-	c.JSON(http.StatusOK, price)
+	c.JSON(http.StatusOK, api.priceToResponse(price))
 }

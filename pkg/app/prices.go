@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"net/http"
 	"prices/pkg/api"
 	"prices/pkg/config"
 	"prices/pkg/migrations"
 	"prices/pkg/repository"
 	"time"
+
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func RunPrices(ctx context.Context, config *config.APIServer) error {

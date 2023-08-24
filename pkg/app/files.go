@@ -2,13 +2,14 @@ package app
 
 import (
 	"context"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"prices/pkg/config"
 	"prices/pkg/files"
 	"prices/pkg/migrations"
 	"prices/pkg/repository"
 	"sync"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func RunFiles(ctx context.Context, config *config.FileProcessor) error {

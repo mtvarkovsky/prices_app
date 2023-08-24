@@ -8,6 +8,6 @@ import (
 var (
 	ErrorIs = errors.Is
 
-	PriceNotFound = fmt.Errorf("price not found")
-	InternalError = fmt.Errorf("internal error")
+	ErrPriceNotFound = fmt.Errorf("price not found")
+	ErrInternal      = fmt.Errorf("internal error")
 )

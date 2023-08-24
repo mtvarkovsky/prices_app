@@ -1,13 +1,14 @@
 package files
 
 import (
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 	"os"
 	"prices/pkg/config"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func newTestScanner(t *testing.T) (*scanner, chan bool) {

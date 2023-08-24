@@ -4,6 +4,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+
 	_ "github.com/go-sql-driver/mysql" // DB driver
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql" // migrate option

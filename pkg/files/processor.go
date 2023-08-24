@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"github.com/shopspring/decimal"
-	"go.uber.org/zap"
 	"io"
 	"os"
 	"prices/pkg/config"
@@ -13,6 +11,9 @@ import (
 	"prices/pkg/repository"
 	"sync"
 	"time"
+
+	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 type (
@@ -102,7 +103,7 @@ func (p *processor) saveLines() {
 	for prices := range p.data {
 		err := p.repo.CreateMany(p.ctx, prices)
 		if err != nil {
-			p.logger.Sugar().Errorf("worker unable to proces data item: (%s)", err.Error())
+			p.logger.Sugar().Errorf("worker unable to process data item: (%s)", err.Error())
 		}
 	}
 	p.logger.Sugar().Info("stop processing worker")
@@ -215,7 +216,7 @@ func (p *processor) saveFiles() {
 		p.logger.Sugar().Infof("save file=%s to storage", file)
 		err := p.repo.ImportFile(p.ctx, file.Path)
 		if err != nil {
-			p.logger.Sugar().Errorf("worker unable to proces file=%s: (%s)", file, err.Error())
+			p.logger.Sugar().Errorf("worker unable to process file=%s: (%s)", file, err.Error())
 		}
 	}
 	p.logger.Info("stop save files worker")

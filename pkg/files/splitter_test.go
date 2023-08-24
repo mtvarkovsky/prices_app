@@ -3,13 +3,14 @@ package files
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 	"os"
 	"prices/pkg/config"
 	"prices/pkg/testutils"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func newTestSplitter(t *testing.T) (*splitter, chan bool) {
@@ -220,14 +221,18 @@ func TestSplitter_Split(t *testing.T) {
 	assert.False(t, open)
 
 	f1, err := os.Open(expectedFile1.Path)
+	assert.NoError(t, err)
 	reader = csv.NewReader(f1)
 	f1Lines, err := reader.ReadAll()
+	assert.NoError(t, err)
 	assert.Equal(t, expectedFile1Lines, f1Lines)
 	f1.Close()
 
 	f2, err := os.Open(expectedFile2.Path)
+	assert.NoError(t, err)
 	reader = csv.NewReader(f2)
 	f2Lines, err := reader.ReadAll()
+	assert.NoError(t, err)
 	assert.Equal(t, expectedFile2Lines, f2Lines)
 	f2.Close()
 
