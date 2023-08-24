@@ -14,21 +14,17 @@ type (
 	}
 
 	FileProcessor struct {
-		FilesDir                string       `mapstructure:"FILES_DIRECTORY"`
-		FilesProcessedDir       string       `mapstructure:"FILES_PROCESSED_DIRECTORY"`
-		FilesErrorsDir          string       `mapstructure:"FILES_ERRORS_DIRECTORY"`
-		FilesQueueSize          int          `mapstructure:"FILES_QUEUE_SIZE"`
-		FilesProcessedQueueSize int          `mapstructure:"FILES_PROCESSED_QUEUE_SIZE"`
-		FilesErrorQueueSize     int          `mapstructure:"FILES_ERROR_QUEUE_SIZE"`
-		FilesSplitQueueSize     int          `mapstructure:"FILES_SPLIT_QUEUE_SIZE"`
-		MaxFileSizeBytes        int64        `mapstructure:"MAX_FILE_SIZE_BYTES"`
-		DataBatchSize           int          `mapstructure:"DATA_BATCH_SIZE"`
-		DataBatchQueueSize      int          `mapstructure:"DATA_BATCH_QUEUE_SIZE"`
-		WorkersCount            int          `mapstructure:"WORKERS_COUNT"`
-		ImportByLines           bool         `mapstructure:"IMPORT_BY_LINES"`
-		FileScanner             FileScanner  `mapstructure:"FILE_SCANNER"`
-		FileSplitter            FileSplitter `mapstructure:"FILE_SPLITTER"`
-		Storage                 Storage      `mapstructure:"STORAGE"`
+		FilesDir            string       `mapstructure:"FILES_DIRECTORY"`
+		FilesQueueSize      int          `mapstructure:"FILES_QUEUE_SIZE"`
+		FilesSplitQueueSize int          `mapstructure:"FILES_SPLIT_QUEUE_SIZE"`
+		MaxFileSizeBytes    int64        `mapstructure:"MAX_FILE_SIZE_BYTES"`
+		DataBatchSize       int          `mapstructure:"DATA_BATCH_SIZE"`
+		DataBatchQueueSize  int          `mapstructure:"DATA_BATCH_QUEUE_SIZE"`
+		WorkersCount        int          `mapstructure:"WORKERS_COUNT"`
+		ImportByLines       bool         `mapstructure:"IMPORT_BY_LINES"`
+		FileScanner         FileScanner  `mapstructure:"FILE_SCANNER"`
+		FileSplitter        FileSplitter `mapstructure:"FILE_SPLITTER"`
+		Storage             Storage      `mapstructure:"STORAGE"`
 	}
 
 	FileScanner struct {

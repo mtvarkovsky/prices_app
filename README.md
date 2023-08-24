@@ -145,3 +145,65 @@ Expected response:
 * Connection #0 to host localhost left intact
 {"expiration_date":"2018-09-11T20:47:23Z","id":"98015680-bf98-4ec5-85a6-2e5f7eee1495","price":52.643929}%   
 ```
+
+### High-Level Description 
+
+The applications is split into two executables with the same codebase.
+
+One is responsible for the .CSV file input (we'll call it `FilesApp`) and the other is a HTTP REST API for the data written by the `FilesApp` (we'll call it `PricesApp`).
+
+This split is created because we may need to scale `FilesApp` and `PricesApp` independently.
+
+#### FilesApp
+
+The `FileApp` consists of three main components:
+- **FileScanner**
+- **FileSplitter**
+- **FileProcessor**
+
+The **FileScanner** monitors the designated folder in the file system and adds new files to a processing queue.
+
+Files can be big. In order to improve the performance, we push big files to a separate queue by splitting them into smaller chunks.
+
+The **FileSplitter** listens for files in the split files queue and splits them according to its configuration, e.g., by 100,000 lines.
+
+The split files are placed back in the scanned folder original folder for the **FileScanner** so it can detect them and push them to the processing queue.
+
+The **FileProcessor** listens for the files in the processing queue and either writes them to the DB storage in batches or imports them to the DB storage as is.
+How the **FileProcessor** writes data to the storage is decided by its configuration.
+
+
+![img.png](img.png)
+
+**FileSplitter** and **FileProcessor** have internal workers and can be scaled according to the provided configuration.
+
+#### PricesApp
+
+The `PricesApp` provides simple HTTP REST API.
+
+The OpenAPI schema definition is located in [prices.yaml](./api/openapi/prices/prices.yaml).
+
+[OAPICodeGen](https://github.com/deepmap/oapi-codegen) library is used to generate `.go` stubs for the server implementation.
+
+You can regenerate the `.go` code stubs with this command:
+```bash
+make prices-api
+```
+
+The initial task description mentioned the possibility of a high load of concurrent requests to this API.
+
+One way to solve this issue is to use multiple instances of `PricesApp` and set up a load balancer to distribute the incoming requests.
+
+Current Docker-based configurations use Nginx to show an example of this approach.
+
+You can test it by building and running the Dockerized version of the application:
+```bash
+$ make docker-build && make docker-run
+```
+
+Then if you make many requests to the load balancer:
+```bash
+curl http://localhost:80/api/v0/prices/promotions/22c3be74-4264-11ee-9c24-a45e60d0762b -v
+```
+
+in the application logs, you'll see that requests are distributed between multiple instances of the `PricesApp`.

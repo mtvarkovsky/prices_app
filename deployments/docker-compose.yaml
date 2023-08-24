@@ -32,15 +32,50 @@ services:
     volumes:
       - ../test/data:/app/data
 
-  apiServer:
+  loadBalancer:
+    image: load_balancer:latest
+    restart: always
+    container_name: loadBalancer
+    depends_on:
+      apiServer1:
+        condition: service_started
+      apiServer2:
+        condition: service_started
+      apiServer3:
+        condition: service_started
+    ports:
+      - "80:80"
+
+  apiServer1:
+    hostname: apiServer1
     image: prices:latest
     restart: always
-    container_name: apiServer
+    container_name: apiServer1
     depends_on:
       mysql:
         condition: service_healthy
     ports:
       - "8080:8080"
+  apiServer2:
+    hostname: apiServer2
+    image: prices:latest
+    restart: always
+    container_name: apiServer2
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+  apiServer3:
+    hostname: apiServer3
+    image: prices:latest
+    restart: always
+    container_name: apiServer3
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8082:8080"
 
 volumes:
   db_data:

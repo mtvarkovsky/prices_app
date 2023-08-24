@@ -1,5 +1,6 @@
 FILES=files
 PRICES=prices
+LOAD_BALANCER=load_balancer
 
 BUILD_DIR=./build
 
@@ -77,12 +78,17 @@ docker-run-files: ## runs files docker image
 docker-build-prices: ## build prices docker image
 	DOCKER_BUILDKIT=1 docker build --ssh default . -f ./deployments/Dockerfile_Prices -t $(PRICES):latest
 
+.PHONY: docker-build-load-balancer
+docker-build-load-balancer: ## build load balancer docker image
+	DOCKER_BUILDKIT=1 docker build --ssh default ./deployments -f ./deployments/Dockerfile_LoadBalancer -t $(LOAD_BALANCER):latest
+
 .PHONY: docker-run-prices
 docker-run-prices: ## runs prices docker image
 	docker-compose -f ./deployments/docker-compose.yaml run --service-ports  apiServer
 
+
 .PHONY: docker-build
-docker-build: docker-build-files docker-build-prices ## build application
+docker-build: docker-build-files docker-build-prices docker-build-load-balancer ## build application
 
 .PHONY: docker-run
 docker-run: ## run application
@@ -98,14 +104,16 @@ docker-stop: ## stop application
 
 .PHONY: docker-stop-clean
 docker-stop-clean: ## stop application and delete all data
-	docker-compose -f ./deployments/docker-compose.yaml down -v --rmi all
+	docker-compose -f ./deployments/docker-compose.yaml down -v
 
 .PHONY: codegen
 codegen: ## install oapicodegen dependency
+	go get github.com/deepmap/oapi-codegen/cmd/oapi-codegen
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen
 
 .PHONY: gomock
 gomock: ## install mockgen dependency
+	go get github.com/golang/mock/mockgen
 	go install github.com/golang/mock/mockgen
 
 .PHONY: mocks
