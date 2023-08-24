@@ -31,7 +31,15 @@ type (
 	}
 )
 
-func NewScanner(wg *sync.WaitGroup, logger *zap.Logger, config *config.FileProcessor, files FileQueue, splitFiles FileQueue, cache FileCache, stop <-chan bool) Scanner {
+func NewScanner(
+	wg *sync.WaitGroup,
+	logger *zap.Logger,
+	config *config.FileProcessor,
+	files FileQueue,
+	splitFiles FileQueue,
+	cache FileCache,
+	stop <-chan bool,
+) Scanner {
 	log := logger.Named("FileScanner")
 	s := &scanner{
 		wg:         wg,

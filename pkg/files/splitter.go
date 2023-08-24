@@ -33,7 +33,13 @@ type (
 	}
 )
 
-func NewSplitter(wg *sync.WaitGroup, logger *zap.Logger, config *config.FileProcessor, splitFiles FileQueue, stop <-chan bool) Splitter {
+func NewSplitter(
+	wg *sync.WaitGroup,
+	logger *zap.Logger,
+	config *config.FileProcessor,
+	splitFiles FileQueue,
+	stop <-chan bool,
+) Splitter {
 	log := logger.Named("FileSplitter")
 	wgInternal := &sync.WaitGroup{}
 	s := &splitter{
