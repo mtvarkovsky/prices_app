@@ -97,8 +97,8 @@ docker-stop: ## stop application
 	docker-compose -f ./deployments/docker-compose.yaml down
 
 .PHONY: docker-stop-clean
-docker-stop-clean: ## stop application and delete volumes
-	docker-compose -f ./deployments/docker-compose.yaml down -v
+docker-stop-clean: ## stop application and delete all data
+	docker-compose -f ./deployments/docker-compose.yaml down -v --rmi all
 
 .PHONY: codegen
 codegen: ## install oapicodegen dependency
