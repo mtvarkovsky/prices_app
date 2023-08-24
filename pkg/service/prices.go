@@ -1,3 +1,5 @@
+//go:generate mockgen -source prices.go -destination prices_mock.go -package service Prices
+
 package service
 
 import (
@@ -10,8 +12,6 @@ import (
 )
 
 type (
-	Error error
-
 	Prices interface {
 		Get(ctx context.Context, id string) (*models.Price, error)
 	}
