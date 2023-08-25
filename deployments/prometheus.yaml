@@ -1,0 +1,52 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+#  external_labels:
+#    monitor: 'prices'
+
+#rule_files:
+#  - 'alert.rules'
+#
+#remote_write:
+#  - url: http://cortex:9009/api/prom/push
+
+#alerting:
+#  alertmanagers:
+#    - scheme: http
+#      static_configs:
+#        - targets:
+#            - "alertmanager:9093"
+
+scrape_configs:
+
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Doc: https://docs.docker.com/config/daemon/prometheus/
+  # Linux Workaround: https://stackoverflow.com/a/67158212/1341168
+  - job_name: 'docker'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+
+  - job_name: 'apiServer1'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['apiServer1:8080']
+
+  - job_name: 'apiServer2'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [ 'apiServer1:8080' ]
+
+  - job_name: 'apiServer3'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [ 'apiServer1:8080' ]
+
+#  - job_name: 'fileParser'
+#    scrape_interval: 5s
+#    static_configs:
+#      - targets: [ 'fileParser:19999' ]

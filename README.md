@@ -207,3 +207,27 @@ $ curl http://localhost:80/api/v0/prices/promotions/22c3be74-4264-11ee-9c24-a45e
 ```
 
 in the application logs, you'll see that requests are distributed between multiple instances of the `PricesApp`.
+
+### Metrics
+
+It's important to measure the application's state.
+One way to do it is to implement some type of monitoring.
+
+To exemplify this approach I've added Prometheus and Grafana to track some basic metrics from the Dockerized configuration of the `PricesApp`.
+
+After executing:
+```bash
+$ make docker-build && make docker-run
+```
+
+Grafana instance will be available at http://localhost:3000/.
+
+Login credentials:
+- user: **admin**
+- password: **1q2w3e**
+
+After that you can set up a dashboard with metrics for `PricesApp`.
+
+#### TODOS
+- Create default dashboard for `PricesApp`
+- Add metrics and create dashboard for `FilesApp`

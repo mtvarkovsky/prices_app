@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Depado/ginprom"
 	"net/http"
 	"prices/pkg/api"
 	"prices/pkg/config"
@@ -35,10 +36,15 @@ func RunPrices(ctx context.Context, config *config.APIServer) error {
 	}
 
 	r := gin.New()
-
+	p := ginprom.New(
+		ginprom.Engine(r),
+		ginprom.Subsystem("gin"),
+		ginprom.Path("/metrics"),
+	)
 	r.Use(
 		ginzap.Ginzap(logger, time.RFC3339, true),
 		gin.Recovery(),
+		p.Instrument(),
 	)
 
 	httpSrv := &http.Server{
