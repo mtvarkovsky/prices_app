@@ -229,5 +229,4 @@ Login credentials:
 After that you can set up a dashboard with metrics for `PricesApp`.
 
 #### TODOS
-- Create default dashboard for `PricesApp`
 - Add metrics and create dashboard for `FilesApp`

@@ -4,19 +4,6 @@ global:
 #  external_labels:
 #    monitor: 'prices'
 
-#rule_files:
-#  - 'alert.rules'
-#
-#remote_write:
-#  - url: http://cortex:9009/api/prom/push
-
-#alerting:
-#  alertmanagers:
-#    - scheme: http
-#      static_configs:
-#        - targets:
-#            - "alertmanager:9093"
-
 scrape_configs:
 
   - job_name: 'prometheus'

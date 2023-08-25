@@ -82,7 +82,7 @@ services:
     user: root
     volumes:
       - "./prometheus.yaml:/etc/prometheus/prometheus.yaml"
-      - "./prometheus_data:/prometheus"
+      - "prometheus_data:/prometheus"
     command:
       - "--config.file=/etc/prometheus/prometheus.yaml"
       - "--storage.tsdb.path=/prometheus"
@@ -91,6 +91,14 @@ services:
       - "--web.enable-lifecycle"
     ports:
       - "9090:9090"
+    depends_on:
+      apiServer1:
+        condition: service_started
+      apiServer2:
+        condition: service_started
+      apiServer3:
+        condition: service_started
+
 
   grafana:
     image: grafana/grafana
@@ -98,15 +106,21 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - "./grafana_data:/var/lib/grafana"
+      - "grafana_data:/var/lib/grafana"
       - "./grafana_provisioning/:/etc/grafana/provisioning/"
     environment:
       - GF_SECURITY_ADMIN_NAME=admin
       - GF_SECURITY_ADMIN_PASSWORD=1q2w3e
       - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      prometheus:
+        condition: service_started
+
 
 volumes:
   db_data:
+  prometheus_data:
+  grafana_data:
 networks:
   prices:
     driver: bridge
