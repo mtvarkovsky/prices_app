@@ -156,7 +156,7 @@ This split is created because we may need to scale `FilesApp` and `PricesApp` in
 
 #### FilesApp
 
-The `FileApp` consists of three main components:
+The `FilesApp` consists of three main components:
 - **FileScanner**
 - **FileSplitter**
 - **FileProcessor**
@@ -167,7 +167,7 @@ Files can be big. In order to improve the performance, we push big files to a se
 
 The **FileSplitter** listens for files in the split files queue and splits them according to its configuration, e.g., by 100,000 lines.
 
-The split files are placed back in the scanned folder original folder for the **FileScanner** so it can detect them and push them to the processing queue.
+The split files are placed back to the original scanned folder for the **FileScanner**, so it can detect them and push them to the processing queue.
 
 The **FileProcessor** listens for the files in the processing queue and either writes them to the DB storage in batches or imports them to the DB storage as is.
 How the **FileProcessor** writes data to the storage is decided by its configuration.
