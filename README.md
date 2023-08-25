@@ -226,7 +226,7 @@ Login credentials:
 - user: **admin**
 - password: **1q2w3e**
 
-After that you can set up a dashboard with metrics for `PricesApp`.
+After that you can find a dashboard with basic metrics for `PricesApp`.
 
 #### TODOS
 - Add metrics and create dashboard for `FilesApp`
