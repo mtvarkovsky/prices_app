@@ -1,10 +1,11 @@
-package files
+package splitter
 
 import (
 	"encoding/csv"
 	"fmt"
 	"os"
 	"prices/pkg/config"
+	"prices/pkg/files"
 	"prices/pkg/testutils"
 	"sync"
 	"testing"
@@ -13,11 +14,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func newTestSplitter(t *testing.T) (*splitter, chan bool) {
+func newTestSplitter(t *testing.T) (*V1, chan bool) {
 	dir, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 
-	splitFiles := NewFileQueueInMem(1)
+	splitFiles := files.NewFileQueueInMem(1)
 
 	wg := &sync.WaitGroup{}
 	log := zap.NewNop()
@@ -35,17 +36,15 @@ func newTestSplitter(t *testing.T) (*splitter, chan bool) {
 	stop := make(chan bool)
 
 	splttr := NewSplitter(wg, log, cfg, splitFiles, stop)
-	s, ok := splttr.(*splitter)
-	assert.True(t, ok)
 
-	return s, stop
+	return splttr, stop
 }
 
 func TestSplitter_PushFileLines(t *testing.T) {
 	splttr, _ := newTestSplitter(t)
 	dir := splttr.config.FilesDir
 
-	file := File{
+	file := files.File{
 		Path: "test",
 	}
 	lines := [][]string{
@@ -54,7 +53,7 @@ func TestSplitter_PushFileLines(t *testing.T) {
 	}
 
 	expectedLines := FileLines{
-		File: File{
+		File: files.File{
 			Path: fmt.Sprintf("%s/%d_%d_%s", dir, 0, 1, file.Name),
 		},
 		Lines:  lines,
@@ -79,16 +78,16 @@ func TestSplitter_SplitFile(t *testing.T) {
 
 	entry := entries[0]
 
-	file := File{
+	file := files.File{
 		Path: fmt.Sprintf("%s/%s", dir, entry.Name()),
 		Name: entry.Name(),
 	}
 
-	expectedFile1 := File{
+	expectedFile1 := files.File{
 		Path: fmt.Sprintf("%s/%d_%d_%s", dir, 0, 50, file.Name),
 	}
 	var expectedFile1Lines [][]string
-	expectedFile2 := File{
+	expectedFile2 := files.File{
 		Path: fmt.Sprintf("%s/%d_%d_%s", dir, 50, 100, file.Name),
 	}
 	var expectedFile2Lines [][]string
@@ -123,13 +122,13 @@ func TestSplitter_ProcessSplits(t *testing.T) {
 	splttr, _ := newTestSplitter(t)
 	dir := splttr.config.FilesDir
 
-	file := File{
+	file := files.File{
 		Path: fmt.Sprintf("%s/%s", dir, "test.csv"),
 		Name: "test.csv",
 	}
 
 	lines := FileLines{
-		File: File{
+		File: files.File{
 			Path: fmt.Sprintf("%s/%d_%d_%s", dir, 0, 1, file.Name),
 		},
 		Lines: [][]string{
@@ -164,7 +163,7 @@ func TestSplitter_Split(t *testing.T) {
 	splttr, stop := newTestSplitter(t)
 	dir := splttr.config.FilesDir
 
-	files := splttr.files
+	filesQ := splttr.files.(*files.FileQueueInMem)
 
 	testutils.GenerateTestData(100, dir)
 
@@ -174,16 +173,16 @@ func TestSplitter_Split(t *testing.T) {
 
 	entry := entries[0]
 
-	file := File{
+	file := files.File{
 		Path: fmt.Sprintf("%s/%s", dir, entry.Name()),
 		Name: entry.Name(),
 	}
 
-	expectedFile1 := File{
+	expectedFile1 := files.File{
 		Path: fmt.Sprintf("%s/%d_%d_%s", dir, 0, 50, file.Name),
 	}
 	var expectedFile1Lines [][]string
-	expectedFile2 := File{
+	expectedFile2 := files.File{
 		Path: fmt.Sprintf("%s/%d_%d_%s", dir, 50, 100, file.Name),
 	}
 	var expectedFile2Lines [][]string
@@ -202,7 +201,7 @@ func TestSplitter_Split(t *testing.T) {
 
 	go splttr.Split()
 
-	err = files.Put(file)
+	err = filesQ.Put(file)
 	assert.NoError(t, err)
 
 	for {
@@ -214,7 +213,7 @@ func TestSplitter_Split(t *testing.T) {
 	}
 
 	stop <- true
-	err = files.Close()
+	err = filesQ.Close()
 	assert.NoError(t, err)
 
 	_, open := <-splttr.fileLines

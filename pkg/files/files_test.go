@@ -6,10 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestFileQueueInMem() *fileQueueInMem {
+func newTestFileQueueInMem() *FileQueueInMem {
 	files := NewFileQueueInMem(1)
-	fq := files.(*fileQueueInMem)
-	return fq
+	return files
 }
 
 func TestFileQueueInMem_Put(t *testing.T) {
@@ -75,10 +74,9 @@ func TestFileQueueInMem_Empty_False(t *testing.T) {
 	assert.False(t, empty)
 }
 
-func newTestFileCacheInMem() *fileCacheInMem {
+func newTestFileCacheInMem() *FileCacheInMem {
 	cache := NewFileCacheInMem()
-	fc := cache.(*fileCacheInMem)
-	return fc
+	return cache
 }
 
 func TestFileCacheInMem_Put(t *testing.T) {

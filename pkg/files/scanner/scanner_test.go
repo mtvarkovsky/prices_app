@@ -1,8 +1,9 @@
-package files
+package scanner
 
 import (
 	"os"
 	"prices/pkg/config"
+	"prices/pkg/files"
 	"sync"
 	"testing"
 	"time"
@@ -11,13 +12,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func newTestScanner(t *testing.T) (*scanner, chan bool) {
+func newTestScanner(t *testing.T) (*V1, chan bool) {
 	dir, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 
-	files := NewFileQueueInMem(0)
-	splitFiles := NewFileQueueInMem(1)
-	cache := NewFileCacheInMem()
+	filesQ := files.NewFileQueueInMem(0)
+	splitFilesQ := files.NewFileQueueInMem(1)
+	cache := files.NewFileCacheInMem()
 
 	wg := &sync.WaitGroup{}
 	log := zap.NewNop()
@@ -32,11 +33,9 @@ func newTestScanner(t *testing.T) (*scanner, chan bool) {
 
 	stop := make(chan bool)
 
-	scnnr := NewScanner(wg, log, cfg, files, splitFiles, cache, stop)
-	s, ok := scnnr.(*scanner)
-	assert.True(t, ok)
+	scnnr := NewScanner(wg, log, cfg, filesQ, splitFilesQ, cache, stop)
 
-	return s, stop
+	return scnnr, stop
 }
 
 func TestScanner_GetPath(t *testing.T) {
@@ -99,8 +98,8 @@ func TestScanner_Add_NewFile(t *testing.T) {
 	file, err := os.CreateTemp(dir, "*.csv")
 	assert.NoError(t, err)
 
-	files := scnnr.files
-	cache := scnnr.cache
+	filesQ := scnnr.files.(*files.FileQueueInMem)
+	cache := scnnr.cache.(*files.FileCacheInMem)
 
 	entries, err := os.ReadDir(dir)
 	assert.NoError(t, err)
@@ -117,11 +116,11 @@ func TestScanner_Add_NewFile(t *testing.T) {
 		testWg.Done()
 	}()
 
-	var newFile File
+	var newFile files.File
 
 	testWg.Add(1)
 	go func() {
-		newFile, err = files.Get()
+		newFile, err = filesQ.Get()
 		assert.NoError(t, err)
 		testWg.Done()
 	}()
@@ -146,9 +145,9 @@ func TestScanner_Add_NewFile_PushToSplitQueue(t *testing.T) {
 	err = file.Truncate(2 << 20)
 	assert.NoError(t, err)
 
-	files := scnnr.files
-	splitFiles := scnnr.splitFiles
-	cache := scnnr.cache
+	filesQ := scnnr.files.(*files.FileQueueInMem)
+	splitFilesQ := scnnr.splitFiles.(*files.FileQueueInMem)
+	cache := scnnr.cache.(*files.FileCacheInMem)
 
 	entries, err := os.ReadDir(dir)
 	assert.NoError(t, err)
@@ -167,10 +166,10 @@ func TestScanner_Add_NewFile_PushToSplitQueue(t *testing.T) {
 
 	testWg.Wait()
 
-	empty := files.Empty()
+	empty := filesQ.Empty()
 	assert.True(t, empty)
 
-	newFile, err := splitFiles.Get()
+	newFile, err := splitFilesQ.Get()
 	assert.NoError(t, err)
 
 	_, ok, _ = cache.Get(newFile.Path)
@@ -189,14 +188,14 @@ func TestScanner_Add_FileAlreadyInCache(t *testing.T) {
 	file, err := os.CreateTemp(dir, "*.csv")
 	assert.NoError(t, err)
 
-	files := scnnr.files
-	cache := scnnr.cache
+	filesQ := scnnr.files.(*files.FileQueueInMem)
+	cache := scnnr.cache.(*files.FileCacheInMem)
 
 	entries, err := os.ReadDir(dir)
 	assert.NoError(t, err)
 	assert.Len(t, entries, 1)
 
-	err = cache.Put(File{Path: file.Name()})
+	err = cache.Put(files.File{Path: file.Name()})
 	assert.NoError(t, err)
 
 	testWg := &sync.WaitGroup{}
@@ -209,7 +208,7 @@ func TestScanner_Add_FileAlreadyInCache(t *testing.T) {
 
 	testWg.Wait()
 
-	assert.True(t, files.Empty())
+	assert.True(t, filesQ.Empty())
 	assert.Equal(t, cache.Len(), 1)
 }
 
@@ -217,8 +216,8 @@ func TestScanner_Scan(t *testing.T) {
 	scnnr, _ := newTestScanner(t)
 	dir := scnnr.config.FilesDir
 
-	files := scnnr.files
-	cache := scnnr.cache
+	filesQ := scnnr.files.(*files.FileQueueInMem)
+	cache := scnnr.cache.(*files.FileCacheInMem)
 
 	go scnnr.Scan()
 
@@ -230,7 +229,7 @@ func TestScanner_Scan(t *testing.T) {
 	counter := 0
 
 	go func() {
-		data, err := files.Data()
+		data, err := filesQ.Data()
 		assert.NoError(t, err)
 		for range data {
 			counter += 1
@@ -258,8 +257,8 @@ func TestScanner_Scan_Stop(t *testing.T) {
 	dir := scnnr.config.FilesDir
 
 	wg := scnnr.wg
-	files := scnnr.files
-	cache := scnnr.cache
+	filesQ := scnnr.files.(*files.FileQueueInMem)
+	cache := scnnr.cache.(*files.FileCacheInMem)
 
 	go scnnr.Scan()
 
@@ -272,7 +271,7 @@ func TestScanner_Scan_Stop(t *testing.T) {
 	counter := 0
 
 	go func() {
-		data, err := files.Data()
+		data, err := filesQ.Data()
 		assert.NoError(t, err)
 		for range data {
 			counter += 1
@@ -296,7 +295,7 @@ func TestScanner_Scan_Stop(t *testing.T) {
 
 	assert.Equal(t, expectedFilesAfterStop, counter)
 	assert.Equal(t, expectedFilesAfterStop, cache.Len())
-	assert.True(t, files.Empty())
+	assert.True(t, filesQ.Empty())
 
 	entries, err := os.ReadDir(dir)
 	assert.NoError(t, err)

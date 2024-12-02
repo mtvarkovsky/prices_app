@@ -1,4 +1,4 @@
-package files
+package processor
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"prices/pkg/config"
+	"prices/pkg/files"
 	"prices/pkg/models"
 	"prices/pkg/repository"
 	"prices/pkg/testutils"
@@ -19,11 +20,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func newTestLineProcessor(t *testing.T) (*processor, chan bool) {
+func newTestLineProcessor(t *testing.T) (*V1, chan bool) {
 	dir, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 
-	files := NewFileQueueInMem(0)
+	fls := files.NewFileQueueInMem(0)
 
 	wg := &sync.WaitGroup{}
 	log := zap.NewNop()
@@ -44,17 +45,16 @@ func newTestLineProcessor(t *testing.T) (*processor, chan bool) {
 
 	stop := make(chan bool)
 
-	prcssr := NewProcessor(ctx, wg, cfg, files, repo, log, stop)
+	prcssr := NewProcessor(ctx, wg, cfg, fls, repo, log, stop)
 
-	p := prcssr.(*processor)
-	return p, stop
+	return prcssr, stop
 }
 
-func newTestFileProcessor(t *testing.T) (*processor, chan bool) {
+func newTestFileProcessor(t *testing.T) (*V1, chan bool) {
 	dir, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 
-	files := NewFileQueueInMem(0)
+	fls := files.NewFileQueueInMem(0)
 
 	wg := &sync.WaitGroup{}
 	log := zap.NewNop()
@@ -75,10 +75,9 @@ func newTestFileProcessor(t *testing.T) (*processor, chan bool) {
 
 	stop := make(chan bool)
 
-	prcssr := NewProcessor(ctx, wg, cfg, files, repo, log, stop)
+	prcssr := NewProcessor(ctx, wg, cfg, fls, repo, log, stop)
 
-	p := prcssr.(*processor)
-	return p, stop
+	return prcssr, stop
 }
 
 func TestProcessor_ParsePriceData(t *testing.T) {
@@ -149,7 +148,7 @@ func TestProcessor_ReadFileByLines(t *testing.T) {
 
 	entry := entries[0]
 
-	file := File{
+	file := files.File{
 		Path: fmt.Sprintf("%s/%s", dir, entry.Name()),
 		Name: entry.Name(),
 	}
@@ -225,11 +224,11 @@ func TestProcessor_SaveLines(t *testing.T) {
 func TestProcessor_SaveFiles(t *testing.T) {
 	prcssr, _ := newTestFileProcessor(t)
 
-	files := prcssr.files
+	filesQ := prcssr.files.(*files.FileQueueInMem)
 	repo := prcssr.repo.(*repository.MockPrices)
 
-	file1 := File{Path: "test1.csv"}
-	file2 := File{Path: "test2.csv"}
+	file1 := files.File{Path: "test1.csv"}
+	file2 := files.File{Path: "test2.csv"}
 
 	prcssr.wgWrite.Add(1)
 	go prcssr.saveFiles()
@@ -237,12 +236,12 @@ func TestProcessor_SaveFiles(t *testing.T) {
 	repo.EXPECT().ImportFile(prcssr.ctx, file1.Path).Return(nil)
 	repo.EXPECT().ImportFile(prcssr.ctx, file2.Path).Return(nil)
 
-	err := files.Put(file1)
+	err := filesQ.Put(file1)
 	assert.NoError(t, err)
-	err = files.Put(file2)
+	err = filesQ.Put(file2)
 	assert.NoError(t, err)
 
-	err = files.Close()
+	err = filesQ.Close()
 	assert.NoError(t, err)
 
 	prcssr.wgWrite.Wait()
@@ -255,7 +254,7 @@ func TestProcessor_ProcessLines(t *testing.T) {
 
 	dir := prcssr.config.FilesDir
 
-	files := prcssr.files
+	filesQ := prcssr.files.(*files.FileQueueInMem)
 	repo := prcssr.repo.(*repository.MockPrices)
 
 	testutils.GenerateTestData(2, dir)
@@ -266,7 +265,7 @@ func TestProcessor_ProcessLines(t *testing.T) {
 
 	entry := entries[0]
 
-	file := File{
+	file := files.File{
 		Path: fmt.Sprintf("%s/%s", dir, entry.Name()),
 		Name: entry.Name(),
 	}
@@ -294,10 +293,10 @@ func TestProcessor_ProcessLines(t *testing.T) {
 	repo.EXPECT().CreateMany(prcssr.ctx, prices[0]).Return(nil)
 	repo.EXPECT().CreateMany(prcssr.ctx, prices[1]).Return(nil)
 
-	err = files.Put(file)
+	err = filesQ.Put(file)
 	assert.NoError(t, err)
 
-	err = files.Close()
+	err = filesQ.Close()
 	assert.NoError(t, err)
 	stop <- true
 	wg.Wait()
@@ -310,7 +309,7 @@ func TestProcessor_ProcessFiles(t *testing.T) {
 
 	dir := prcssr.config.FilesDir
 
-	files := prcssr.files
+	filesQ := prcssr.files.(*files.FileQueueInMem)
 	repo := prcssr.repo.(*repository.MockPrices)
 
 	testutils.GenerateTestData(2, dir)
@@ -321,7 +320,7 @@ func TestProcessor_ProcessFiles(t *testing.T) {
 
 	entry := entries[0]
 
-	file := File{
+	file := files.File{
 		Path: fmt.Sprintf("%s/%s", dir, entry.Name()),
 		Name: entry.Name(),
 	}
@@ -330,10 +329,10 @@ func TestProcessor_ProcessFiles(t *testing.T) {
 
 	repo.EXPECT().ImportFile(prcssr.ctx, file.Path).Return(nil)
 
-	err = files.Put(file)
+	err = filesQ.Put(file)
 	assert.NoError(t, err)
 
-	err = files.Close()
+	err = filesQ.Close()
 	assert.NoError(t, err)
 
 	stop <- true

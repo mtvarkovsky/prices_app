@@ -1,4 +1,4 @@
-package files
+package splitter
 
 import (
 	"encoding/csv"
@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"prices/pkg/config"
+	"prices/pkg/files"
 	"sync"
 
 	"go.uber.org/zap"
@@ -13,16 +14,17 @@ import (
 
 type (
 	FileLines struct {
-		File   File
+		File   files.File
 		Lines  [][]string
-		Parent File
+		Parent files.File
 	}
 
-	Splitter interface {
-		Split()
+	FileQueue interface {
+		Put(file files.File) error
+		Data() (<-chan files.File, error)
 	}
 
-	splitter struct {
+	V1 struct {
 		wg         *sync.WaitGroup
 		wgInternal *sync.WaitGroup
 		config     *config.FileProcessor
@@ -39,10 +41,10 @@ func NewSplitter(
 	config *config.FileProcessor,
 	splitFiles FileQueue,
 	stop <-chan bool,
-) Splitter {
+) *V1 {
 	log := logger.Named("FileSplitter")
 	wgInternal := &sync.WaitGroup{}
-	s := &splitter{
+	s := &V1{
 		wg:         wg,
 		wgInternal: wgInternal,
 		config:     config,
@@ -54,36 +56,36 @@ func NewSplitter(
 	return s
 }
 
-func (s *splitter) Split() {
-	s.logger.Sugar().Infof("start file splitter")
+func (s *V1) Split() {
+	s.logger.Sugar().Infof("start file V1")
 	s.wg.Add(1)
 	go s.splitFiles()
 	for i := 0; i < s.config.FileSplitter.WorkersCount; i++ {
-		s.logger.Sugar().Infof("start file splitter worker")
+		s.logger.Sugar().Infof("start file V1 worker")
 		s.wgInternal.Add(1)
 		go s.processSplits()
 	}
 	<-s.stop
-	s.logger.Sugar().Infof("stopping file splitter")
+	s.logger.Sugar().Infof("stopping file V1")
 	close(s.fileLines)
 	s.wgInternal.Wait()
-	s.logger.Sugar().Infof("stop file splitter")
+	s.logger.Sugar().Infof("stop file V1")
 	s.wg.Done()
 }
 
-func (s *splitter) splitFiles() {
-	files, err := s.files.Data()
+func (s *V1) splitFiles() {
+	fls, err := s.files.Data()
 	if err != nil {
 		s.logger.Sugar().Infof("can't get file queue data: (%s)", err.Error())
 		return
 	}
-	for file := range files {
+	for file := range fls {
 		s.wgInternal.Add(1)
 		go s.splitFile(file)
 	}
 }
 
-func (s *splitter) splitFile(file File) {
+func (s *V1) splitFile(file files.File) {
 	s.logger.Sugar().Infof("try to split file=%s", file)
 	defer s.wgInternal.Done()
 	f, err := os.Open(file.Path)
@@ -118,9 +120,9 @@ func (s *splitter) splitFile(file File) {
 	s.logger.Sugar().Infof("done splitting file=%s", file)
 }
 
-func (s *splitter) pushFileLines(file File, lines [][]string, start int, end int) {
+func (s *V1) pushFileLines(file files.File, lines [][]string, start int, end int) {
 	fileLines := FileLines{
-		File: File{
+		File: files.File{
 			Path: fmt.Sprintf("%s/%d_%d_%s", s.config.FilesDir, start, end, file.Name),
 		},
 		Lines:  lines,
@@ -129,9 +131,9 @@ func (s *splitter) pushFileLines(file File, lines [][]string, start int, end int
 	s.fileLines <- fileLines
 }
 
-func (s *splitter) processSplits() {
+func (s *V1) processSplits() {
 	defer func() {
-		s.logger.Sugar().Infof("stop file splitter worker")
+		s.logger.Sugar().Infof("stop file V1 worker")
 		s.wgInternal.Done()
 	}()
 	for fl := range s.fileLines {

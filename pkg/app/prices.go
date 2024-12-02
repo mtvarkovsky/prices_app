@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Depado/ginprom"
 	"net/http"
 	"prices/pkg/api"
 	"prices/pkg/config"
 	"prices/pkg/migrations"
 	"prices/pkg/repository"
 	"time"
+
+	"github.com/Depado/ginprom"
 
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"

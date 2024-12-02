@@ -4,6 +4,9 @@ import (
 	"context"
 	"prices/pkg/config"
 	"prices/pkg/files"
+	"prices/pkg/files/processor"
+	"prices/pkg/files/scanner"
+	"prices/pkg/files/splitter"
 	"prices/pkg/migrations"
 	"prices/pkg/repository"
 	"sync"
@@ -39,14 +42,14 @@ func RunFiles(ctx context.Context, config *config.FileProcessor) error {
 
 	filesCache := files.NewFileCacheInMem()
 
-	scanner := files.NewScanner(wg, logger, config, filesQueue, filesSplitQueue, filesCache, stopScanner)
-	go scanner.Scan()
+	scnnr := scanner.NewScanner(wg, logger, config, filesQueue, filesSplitQueue, filesCache, stopScanner)
+	go scnnr.Scan()
 
-	splitter := files.NewSplitter(wg, logger, config, filesSplitQueue, stopSplitter)
-	go splitter.Split()
+	splttr := splitter.NewSplitter(wg, logger, config, filesSplitQueue, stopSplitter)
+	go splttr.Split()
 
-	processor := files.NewProcessor(ctx, wg, config, filesQueue, pricesRepo, logger, stopProcessor)
-	go processor.Process()
+	prcssr := processor.NewProcessor(ctx, wg, config, filesQueue, pricesRepo, logger, stopProcessor)
+	go prcssr.Process()
 
 	<-ctx.Done()
 	logger.Sugar().Infof("stopping FilesApp")

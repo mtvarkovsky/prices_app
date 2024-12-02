@@ -1,4 +1,4 @@
-package files
+package processor
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"io"
 	"os"
 	"prices/pkg/config"
+	"prices/pkg/files"
 	"prices/pkg/models"
-	"prices/pkg/repository"
 	"sync"
 	"time"
 
@@ -17,21 +17,16 @@ import (
 )
 
 type (
-	LineProcessor interface {
-		ProcessLines()
+	FileQueue interface {
+		Data() (<-chan files.File, error)
 	}
 
-	FileProcessor interface {
-		ProcessFiles()
+	PricesRepo interface {
+		CreateMany(ctx context.Context, prices []*models.Price) error
+		ImportFile(ctx context.Context, filePath string) error
 	}
 
-	Processor interface {
-		LineProcessor
-		FileProcessor
-		Process()
-	}
-
-	processor struct {
+	V1 struct {
 		ctx     context.Context
 		wg      *sync.WaitGroup
 		wgRead  *sync.WaitGroup
@@ -39,7 +34,7 @@ type (
 		config  *config.FileProcessor
 		data    chan []*models.Price
 		files   FileQueue
-		repo    repository.Prices
+		repo    PricesRepo
 		logger  *zap.Logger
 		stop    <-chan bool
 	}
@@ -50,14 +45,14 @@ func NewProcessor(
 	wg *sync.WaitGroup,
 	config *config.FileProcessor,
 	files FileQueue,
-	repo repository.Prices,
+	repo PricesRepo,
 	logger *zap.Logger,
 	stop <-chan bool,
-) Processor {
+) *V1 {
 	log := logger.Named("FileProcessor")
 	wgRead := &sync.WaitGroup{}
 	wgWrite := &sync.WaitGroup{}
-	p := &processor{
+	p := &V1{
 		wg:      wg,
 		wgRead:  wgRead,
 		wgWrite: wgWrite,
@@ -72,7 +67,7 @@ func NewProcessor(
 	return p
 }
 
-func (p *processor) Process() {
+func (p *V1) Process() {
 	p.wg.Add(1)
 	if p.config.ImportByLines {
 		p.ProcessLines()
@@ -87,7 +82,7 @@ func (p *processor) Process() {
 	p.wg.Done()
 }
 
-func (p *processor) ProcessLines() {
+func (p *V1) ProcessLines() {
 	p.logger.Sugar().Info("start processing files by lines")
 	p.wgRead.Add(1)
 	go p.readFilesByLines()
@@ -97,7 +92,7 @@ func (p *processor) ProcessLines() {
 	}
 }
 
-func (p *processor) saveLines() {
+func (p *V1) saveLines() {
 	defer p.wgWrite.Done()
 	p.logger.Sugar().Info("start processing worker")
 	for prices := range p.data {
@@ -109,7 +104,7 @@ func (p *processor) saveLines() {
 	p.logger.Sugar().Info("stop processing worker")
 }
 
-func (p *processor) readFilesByLines() {
+func (p *V1) readFilesByLines() {
 	defer p.wgRead.Done()
 	p.logger.Sugar().Info("start reading files")
 	data, err := p.files.Data()
@@ -124,7 +119,7 @@ func (p *processor) readFilesByLines() {
 	p.logger.Sugar().Info("stop reading files")
 }
 
-func (p *processor) readFileByLines(file File) {
+func (p *V1) readFileByLines(file files.File) {
 	defer p.wgRead.Done()
 	p.logger.Sugar().Infof("start reading file=%s", file)
 	f, err := os.Open(file.Path)
@@ -155,7 +150,7 @@ func (p *processor) readFileByLines(file File) {
 	}
 }
 
-func (p *processor) toPrice(path string, line []string) *models.Price {
+func (p *V1) toPrice(path string, line []string) *models.Price {
 	price := &models.Price{}
 	if len(line) > 3 {
 		p.logger.Sugar().Errorf("bad file=%s format, only 3 columns expected", path)
@@ -180,7 +175,7 @@ func (p *processor) toPrice(path string, line []string) *models.Price {
 	return price
 }
 
-func (p *processor) parsePriceData(priceData string) (*decimal.Decimal, error) {
+func (p *V1) parsePriceData(priceData string) (*decimal.Decimal, error) {
 	price, err := decimal.NewFromString(priceData)
 	if err != nil {
 		return nil, fmt.Errorf("can't parse price data=%s as a floating point number", priceData)
@@ -188,7 +183,7 @@ func (p *processor) parsePriceData(priceData string) (*decimal.Decimal, error) {
 	return &price, nil
 }
 
-func (p *processor) parseExpirationDate(expirationDate string) (*time.Time, error) {
+func (p *V1) parseExpirationDate(expirationDate string) (*time.Time, error) {
 	expDate, err := time.Parse("2006-01-02 15:04:05 -0700 MST", expirationDate)
 	if err != nil {
 		return nil, fmt.Errorf("can't parse expiration date=%s as a timestamp", expirationDate)
@@ -196,7 +191,7 @@ func (p *processor) parseExpirationDate(expirationDate string) (*time.Time, erro
 	return &expDate, nil
 }
 
-func (p *processor) ProcessFiles() {
+func (p *V1) ProcessFiles() {
 	p.logger.Sugar().Info("start processing files")
 	for i := 0; i < p.config.WorkersCount; i++ {
 		p.wgWrite.Add(1)
@@ -204,7 +199,7 @@ func (p *processor) ProcessFiles() {
 	}
 }
 
-func (p *processor) saveFiles() {
+func (p *V1) saveFiles() {
 	p.logger.Info("start save files worker")
 	defer p.wgWrite.Done()
 	data, err := p.files.Data()

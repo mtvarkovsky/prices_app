@@ -27,9 +27,9 @@ type (
 		Empty() bool
 	}
 
-	// fileQueueInMem - in memory implementation of the FileQueue.
+	// FileQueueInMem - in memory implementation of the FileQueue.
 	// Only applicable for a single instance scanner per scanned directory, because multiple scanners can read same files multiple times.
-	fileQueueInMem struct {
+	FileQueueInMem struct {
 		data chan File
 	}
 
@@ -44,10 +44,10 @@ type (
 		Len() int
 	}
 
-	// fileCacheInMem - in memory implementation of the FileCache.
+	// FileCacheInMem - in memory implementation of the FileCache.
 	// Only applicable for a single instance scanner per scanned directory.
 	// Not safe for concurrent usage.
-	fileCacheInMem struct {
+	FileCacheInMem struct {
 		// path -> File
 		data map[string]File
 	}
@@ -57,13 +57,13 @@ func (f File) String() string {
 	return f.Path
 }
 
-func NewFileQueueInMem(size int) FileQueue {
-	return &fileQueueInMem{
+func NewFileQueueInMem(size int) *FileQueueInMem {
+	return &FileQueueInMem{
 		data: make(chan File, size),
 	}
 }
 
-func (q *fileQueueInMem) Put(file File) (err error) {
+func (q *FileQueueInMem) Put(file File) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("unable to put file=%s into queue: (%v)", file.Path, r)
@@ -73,11 +73,11 @@ func (q *fileQueueInMem) Put(file File) (err error) {
 	return err
 }
 
-func (q *fileQueueInMem) Data() (<-chan File, error) {
+func (q *FileQueueInMem) Data() (<-chan File, error) {
 	return q.data, nil
 }
 
-func (q *fileQueueInMem) Get() (File, error) {
+func (q *FileQueueInMem) Get() (File, error) {
 	file, ok := <-q.data
 	if !ok {
 		return File{}, fmt.Errorf("uanble to get file from queue, queue is closed")
@@ -85,7 +85,7 @@ func (q *fileQueueInMem) Get() (File, error) {
 	return file, nil
 }
 
-func (q *fileQueueInMem) Close() (err error) {
+func (q *FileQueueInMem) Close() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("unable close files queue: (%v)", r)
@@ -95,27 +95,27 @@ func (q *fileQueueInMem) Close() (err error) {
 	return err
 }
 
-func (q *fileQueueInMem) Empty() bool {
+func (q *FileQueueInMem) Empty() bool {
 	return len(q.data) == 0
 }
 
-func NewFileCacheInMem() FileCache {
-	return &fileCacheInMem{
+func NewFileCacheInMem() *FileCacheInMem {
+	return &FileCacheInMem{
 		data: make(map[string]File),
 	}
 }
 
-func (c *fileCacheInMem) Put(file File) error {
+func (c *FileCacheInMem) Put(file File) error {
 	c.data[file.Path] = file
 	return nil
 }
 
 // Get - gets File from cache by path
-func (c *fileCacheInMem) Get(path string) (File, bool, error) {
+func (c *FileCacheInMem) Get(path string) (File, bool, error) {
 	file, ok := c.data[path]
 	return file, ok, nil
 }
 
-func (c *fileCacheInMem) Len() int {
+func (c *FileCacheInMem) Len() int {
 	return len(c.data)
 }

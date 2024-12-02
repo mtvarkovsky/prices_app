@@ -1,10 +1,11 @@
-package files
+package scanner
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 	"prices/pkg/config"
+	"prices/pkg/files"
 	"sync"
 	"time"
 
@@ -16,11 +17,17 @@ const (
 )
 
 type (
-	Scanner interface {
-		Scan()
+	FileQueue interface {
+		Put(file files.File) error
+		Data() (<-chan files.File, error)
 	}
 
-	scanner struct {
+	FileCache interface {
+		Put(file files.File) error
+		Get(key string) (files.File, bool, error)
+	}
+
+	V1 struct {
 		wg         *sync.WaitGroup
 		config     *config.FileProcessor
 		stop       <-chan bool
@@ -39,9 +46,9 @@ func NewScanner(
 	splitFiles FileQueue,
 	cache FileCache,
 	stop <-chan bool,
-) Scanner {
+) *V1 {
 	log := logger.Named("FileScanner")
-	s := &scanner{
+	s := &V1{
 		wg:         wg,
 		config:     config,
 		stop:       stop,
@@ -53,7 +60,7 @@ func NewScanner(
 	return s
 }
 
-func (s *scanner) Scan() {
+func (s *V1) Scan() {
 	s.logger.Sugar().Infof("try to start scanning files in directory=%s", s.config.FilesDir)
 	if _, err := os.Stat(s.config.FilesDir); os.IsNotExist(err) {
 		s.logger.Sugar().Errorf("can't open directory=%s: (%s)", s.config.FilesDir, err.Error())
@@ -74,7 +81,7 @@ func (s *scanner) Scan() {
 	}
 }
 
-func (s *scanner) scanDir() {
+func (s *V1) scanDir() {
 	dir, err := os.ReadDir(s.config.FilesDir)
 	if err != nil {
 		s.logger.Sugar().Errorf("can't open directory=%s: (%s)", s.config.FilesDir, err.Error())
@@ -87,7 +94,7 @@ func (s *scanner) scanDir() {
 	}
 }
 
-func (s *scanner) valid(entry os.DirEntry) bool {
+func (s *V1) valid(entry os.DirEntry) bool {
 	if entry.IsDir() {
 		return false
 	}
@@ -96,11 +103,11 @@ func (s *scanner) valid(entry os.DirEntry) bool {
 	return extension == CSV
 }
 
-func (s *scanner) getPath(entry os.DirEntry) string {
+func (s *V1) getPath(entry os.DirEntry) string {
 	return filepath.Join(s.config.FilesDir, entry.Name())
 }
 
-func (s *scanner) add(entry os.DirEntry) {
+func (s *V1) add(entry os.DirEntry) {
 	path := s.getPath(entry)
 	if _, ok, err := s.cache.Get(path); ok {
 		return
@@ -118,7 +125,7 @@ func (s *scanner) add(entry os.DirEntry) {
 		s.logger.Sugar().Errorf("can't reanme entry=%s to=%s: (%s)", path, newPath, err.Error())
 		return
 	}
-	newFile := File{Path: newPath, Name: newName}
+	newFile := files.File{Path: newPath, Name: newName}
 
 	newFileInfo, err := os.Stat(newFile.Path)
 	if err != nil {
