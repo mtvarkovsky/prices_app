@@ -1,6 +1,6 @@
 module prices
 
-go 1.20
+go 1.23
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
@@ -83,6 +83,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.4.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
