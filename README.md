@@ -25,7 +25,7 @@ Also, the HTTP REST API can receive a high load (millions of requests per minute
 
 #### Prerequisites
 
-In order to run this app, you'll need Go 1.20 and a MySQL instance installed on your machine.
+In order to run this app, you'll need Go 1.23 and a MySQL instance installed on your machine.
 
 Or you can use the provided docker-compose configuration that handles everything (you'll need to have Docker installed on your machine).
 

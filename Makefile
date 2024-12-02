@@ -72,7 +72,7 @@ docker-build-files: ## build files docker image
 
 .PHONY: docker-run-files
 docker-run-files: ## runs files docker image
-	docker-compose -f ./deployments/docker-compose.yaml run fileParser
+	docker compose -f ./deployments/docker-compose.yaml run fileParser
 
 .PHONY: docker-build-prices
 docker-build-prices: ## build prices docker image
@@ -84,7 +84,7 @@ docker-build-load-balancer: ## build load balancer docker image
 
 .PHONY: docker-run-prices
 docker-run-prices: ## runs prices docker image
-	docker-compose -f ./deployments/docker-compose.yaml run --service-ports  apiServer
+	docker compose -f ./deployments/docker-compose.yaml run --service-ports  apiServer
 
 
 .PHONY: docker-build
@@ -92,19 +92,19 @@ docker-build: docker-build-files docker-build-prices docker-build-load-balancer 
 
 .PHONY: docker-run
 docker-run: ## run application
-	docker-compose -f ./deployments/docker-compose.yaml up -d
+	docker compose -f ./deployments/docker-compose.yaml up -d
 
 .PHONY: docker-logs
 docker-logs: ## get application logs
-	docker-compose -f ./deployments/docker-compose.yaml logs -f
+	docker compose -f ./deployments/docker-compose.yaml logs -f
 
 .PHONY: docker-stop
 docker-stop: ## stop application
-	docker-compose -f ./deployments/docker-compose.yaml down
+	docker compose -f ./deployments/docker-compose.yaml down
 
 .PHONY: docker-stop-clean
 docker-stop-clean: ## stop application and delete all data
-	docker-compose -f ./deployments/docker-compose.yaml down -v
+	docker compose -f ./deployments/docker-compose.yaml down -v
 
 .PHONY: codegen
 codegen: ## install oapicodegen dependency
