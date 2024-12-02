@@ -14,13 +14,13 @@ import (
 )
 
 type (
-	mysqlPrices struct {
+	MySQLPrices struct {
 		db     *sql.DB
 		config config.Storage
 	}
 )
 
-func newMysqlPrices(config config.Storage) (*mysqlPrices, error) {
+func NewMySQLPrices(config config.Storage) (*MySQLPrices, error) {
 	db, err := sql.Open(config.Type, config.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("can't establish connection to the data storage: %w", err)
@@ -36,13 +36,13 @@ func newMysqlPrices(config config.Storage) (*mysqlPrices, error) {
 		return nil, fmt.Errorf("can't ping data storage: %w", err)
 	}
 
-	return &mysqlPrices{
+	return &MySQLPrices{
 		db:     db,
 		config: config,
 	}, nil
 }
 
-func (r *mysqlPrices) CreateMany(ctx context.Context, prices []*models.Price) error {
+func (r *MySQLPrices) CreateMany(ctx context.Context, prices []*models.Price) error {
 	values := bqb.Q()
 	for _, price := range prices {
 		values.Comma("(?,?,?)", price.ID, price.Price, price.ExpirationDate)
@@ -69,7 +69,7 @@ func (r *mysqlPrices) CreateMany(ctx context.Context, prices []*models.Price) er
 	return nil
 }
 
-func (r *mysqlPrices) ImportFile(ctx context.Context, filePath string) error {
+func (r *MySQLPrices) ImportFile(ctx context.Context, filePath string) error {
 	q := bqb.New(fmt.Sprintf(`
 		LOAD DATA CONCURRENT LOCAL INFILE '%s'
 		IGNORE
@@ -91,7 +91,7 @@ func (r *mysqlPrices) ImportFile(ctx context.Context, filePath string) error {
 	return nil
 }
 
-func (r *mysqlPrices) Get(ctx context.Context, id string) (*models.Price, error) {
+func (r *MySQLPrices) Get(ctx context.Context, id string) (*models.Price, error) {
 	q := bqb.New(
 		`
 			SELECT id, price, expiration_date FROM prices

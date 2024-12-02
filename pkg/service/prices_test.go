@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"prices/pkg/models"
-	"prices/pkg/repository"
 	"testing"
 	"time"
 
@@ -13,19 +12,18 @@ import (
 	"go.uber.org/zap"
 )
 
-func newTestPrices(t *testing.T) *prices {
+func newTestPrices(t *testing.T) *Prices {
 	ctrl := gomock.NewController(t)
 	log := zap.NewNop()
-	repo := repository.NewMockPrices(ctrl)
+	repo := NewMockRepository(ctrl)
 	prcs := NewPrices(log, repo)
 
-	p := prcs.(*prices)
-	return p
+	return prcs
 }
 
 func TestPrices_Get(t *testing.T) {
 	prcs := newTestPrices(t)
-	repo := prcs.repo.(*repository.MockPrices)
+	repo := prcs.repo.(*MockRepository)
 	expectedPrice := &models.Price{
 		ID:             "test_id_1",
 		Price:          decimal.NewFromFloat(3.14),

@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestMysqlPrices(t *testing.T) (*mysqlPrices, sqlmock.Sqlmock) {
+func newTestMysqlPrices(t *testing.T) (*MySQLPrices, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	assert.NoError(t, err)
-	repo := &mysqlPrices{
+	repo := &MySQLPrices{
 		db: db,
 	}
 	return repo, mock

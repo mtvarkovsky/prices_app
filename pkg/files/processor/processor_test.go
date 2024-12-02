@@ -8,7 +8,6 @@ import (
 	"prices/pkg/config"
 	"prices/pkg/files"
 	"prices/pkg/models"
-	"prices/pkg/repository"
 	"prices/pkg/testutils"
 	"sync"
 	"testing"
@@ -41,7 +40,7 @@ func newTestLineProcessor(t *testing.T) (*V1, chan bool) {
 
 	ctrl := gomock.NewController(t)
 
-	repo := repository.NewMockPrices(ctrl)
+	repo := NewMockPricesRepo(ctrl)
 
 	stop := make(chan bool)
 
@@ -71,7 +70,7 @@ func newTestFileProcessor(t *testing.T) (*V1, chan bool) {
 
 	ctrl := gomock.NewController(t)
 
-	repo := repository.NewMockPrices(ctrl)
+	repo := NewMockPricesRepo(ctrl)
 
 	stop := make(chan bool)
 
@@ -176,7 +175,7 @@ func TestProcessor_SaveLines(t *testing.T) {
 	prcssr, _ := newTestLineProcessor(t)
 
 	data := prcssr.data
-	repo := prcssr.repo.(*repository.MockPrices)
+	repo := prcssr.repo.(*MockPricesRepo)
 
 	priceData1, err := decimal.NewFromString("2109.555555")
 	assert.NoError(t, err)
@@ -225,7 +224,7 @@ func TestProcessor_SaveFiles(t *testing.T) {
 	prcssr, _ := newTestFileProcessor(t)
 
 	filesQ := prcssr.files.(*files.FileQueueInMem)
-	repo := prcssr.repo.(*repository.MockPrices)
+	repo := prcssr.repo.(*MockPricesRepo)
 
 	file1 := files.File{Path: "test1.csv"}
 	file2 := files.File{Path: "test2.csv"}
@@ -255,7 +254,7 @@ func TestProcessor_ProcessLines(t *testing.T) {
 	dir := prcssr.config.FilesDir
 
 	filesQ := prcssr.files.(*files.FileQueueInMem)
-	repo := prcssr.repo.(*repository.MockPrices)
+	repo := prcssr.repo.(*MockPricesRepo)
 
 	testutils.GenerateTestData(2, dir)
 
@@ -310,7 +309,7 @@ func TestProcessor_ProcessFiles(t *testing.T) {
 	dir := prcssr.config.FilesDir
 
 	filesQ := prcssr.files.(*files.FileQueueInMem)
-	repo := prcssr.repo.(*repository.MockPrices)
+	repo := prcssr.repo.(*MockPricesRepo)
 
 	testutils.GenerateTestData(2, dir)
 

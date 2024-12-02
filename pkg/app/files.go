@@ -25,7 +25,7 @@ func RunFiles(ctx context.Context, config *config.FileProcessor) error {
 	}
 
 	logger.Sugar().Infof("init prices repo for storage=%s", config.Storage.Type)
-	pricesRepo, err := repository.NewPrices(config.Storage)
+	pricesRepo, err := repository.NewMySQLPrices(config.Storage)
 	if err != nil {
 		logger.Sugar().Errorf("unable to init prices repo for storage=%s: (%s)", config.Storage.Type, err.Error())
 		return err

@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"prices/pkg/config"
 	"prices/pkg/models"
-	"prices/pkg/service"
 	"testing"
 	"time"
 
@@ -60,7 +59,7 @@ func newTestAPI(t *testing.T) (*API, *gin.Engine) {
 	ctrl := gomock.NewController(t)
 	cfg := &config.APIServer{Port: 8080}
 	log := zap.NewNop()
-	prices := service.NewMockPrices(ctrl)
+	prices := NewMockService(ctrl)
 	api := &API{
 		logger:  log,
 		config:  cfg,
@@ -74,7 +73,7 @@ func newTestAPI(t *testing.T) (*API, *gin.Engine) {
 
 func TestAPI_GetPromotion(t *testing.T) {
 	api, e := newTestAPI(t)
-	prcs := api.prices.(*service.MockPrices)
+	prcs := api.prices.(*MockService)
 
 	expectedPrice := &models.Price{
 		ID:             "test_id_1",

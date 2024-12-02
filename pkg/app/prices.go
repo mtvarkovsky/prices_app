@@ -9,6 +9,7 @@ import (
 	"prices/pkg/config"
 	"prices/pkg/migrations"
 	"prices/pkg/repository"
+	"prices/pkg/service"
 	"time"
 
 	"github.com/Depado/ginprom"
@@ -30,7 +31,7 @@ func RunPrices(ctx context.Context, config *config.APIServer) error {
 	}
 
 	logger.Sugar().Infof("init prices repo for storage=%s", config.Storage.Type)
-	pricesRepo, err := repository.NewPrices(config.Storage)
+	pricesRepo, err := repository.NewMySQLPrices(config.Storage)
 	if err != nil {
 		logger.Sugar().Errorf("unable to init prices repo for storage=%s: (%s)", config.Storage.Type, err.Error())
 		return err
@@ -53,7 +54,9 @@ func RunPrices(ctx context.Context, config *config.APIServer) error {
 		Handler: r,
 	}
 
-	restAPI := api.NewAPI(config, logger, pricesRepo)
+	srvc := service.NewPrices(logger, pricesRepo)
+
+	restAPI := api.NewAPI(config, logger, srvc)
 	restAPI.RegisterHandlers(r)
 
 	go func() {

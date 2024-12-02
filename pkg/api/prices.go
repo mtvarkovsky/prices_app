@@ -1,12 +1,13 @@
+//go:generate mockgen -source prices.go -destination prices_mock.go -package api Service
+
 package api
 
 import (
+	"context"
 	"net/http"
 	"prices/pkg/config"
 	"prices/pkg/errors"
 	"prices/pkg/models"
-	"prices/pkg/repository"
-	"prices/pkg/service"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -17,6 +18,10 @@ const (
 )
 
 type (
+	Service interface {
+		Get(ctx context.Context, id string) (*models.Price, error)
+	}
+
 	API struct {
 		ServerInterface
 
@@ -24,7 +29,7 @@ type (
 		logger  *zap.Logger
 		config  *config.APIServer
 
-		prices service.Prices
+		prices Service
 	}
 )
 
@@ -34,14 +39,13 @@ var (
 	}
 )
 
-func NewAPI(config *config.APIServer, logger *zap.Logger, repo repository.Prices) *API {
+func NewAPI(config *config.APIServer, logger *zap.Logger, srv Service) *API {
 	log := logger.Named("PricesAPI")
-	prices := service.NewPrices(logger, repo)
 	api := &API{
 		BaseURL: BaseURL,
 		config:  config,
 		logger:  log,
-		prices:  prices,
+		prices:  srv,
 	}
 	return api
 }

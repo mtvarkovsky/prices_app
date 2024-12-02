@@ -1,3 +1,5 @@
+//go:generate mockgen -source processor.go -destination repository_mock.go -package processor PricesRepo
+
 package processor
 
 import (
