@@ -13,38 +13,15 @@ type (
 		Name string
 	}
 
-	// FileQueue - interface a queue of File that are going to be processed
-	FileQueue interface {
-		// Put - adds a File to the queue
-		Put(file File) error
-		// Data - returns channel with File from queue
-		Data() (<-chan File, error)
-		// Get - returns a File from top of the queue.
-		Get() (File, error)
-		// Close - closes the queue
-		Close() error
-		// Empty - check if file queue is empty
-		Empty() bool
-	}
-
 	// FileQueueInMem - in memory implementation of the FileQueue.
+	// FileQueue - interface a queue of File that are going to be processed
 	// Only applicable for a single instance scanner per scanned directory, because multiple scanners can read same files multiple times.
 	FileQueueInMem struct {
 		data chan File
 	}
 
-	// FileCache - interface for File cache. It saves precessed File, so they would not be processed multiple times.
-	FileCache interface {
-		// Put - put File in cache
-		Put(file File) error
-		// Get - gets File from cache by its key.
-		// Return File, bool value if file was found, and an error
-		Get(key string) (File, bool, error)
-		// Len - number of File in FileCache
-		Len() int
-	}
-
 	// FileCacheInMem - in memory implementation of the FileCache.
+	// FileCache - interface for File cache. It saves precessed File, so they would not be processed multiple times.
 	// Only applicable for a single instance scanner per scanned directory.
 	// Not safe for concurrent usage.
 	FileCacheInMem struct {
